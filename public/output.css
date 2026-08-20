@@ -222,11 +222,8 @@
   .h-16 {
     height: calc(var(--spacing) * 16);
   }
-  .h-20 {
-    height: calc(var(--spacing) * 20);
-  }
-  .h-100 {
-    height: calc(var(--spacing) * 100);
+  .h-48 {
+    height: calc(var(--spacing) * 48);
   }
   .h-\[10vh\] {
     height: 10vh;
@@ -257,9 +254,6 @@
   }
   .w-16 {
     width: calc(var(--spacing) * 16);
-  }
-  .w-100 {
-    width: calc(var(--spacing) * 100);
   }
   .w-\[70\%\] {
     width: 70%;
