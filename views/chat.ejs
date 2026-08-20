@@ -104,21 +104,21 @@
                     <% if(message.sender.toString() == user1._id.toString()){ %>
                         <div class="msg-token flex flex-col self-end bg-blue-500 text-white w-1/3 p-4 rounded-tl-2xl rounded-bl-2xl rounded-br-2xl m-4">
                             <%= message.content %>
-                            <span class="text-sm self-end"><%= displayTime(message.createdAt.toString().split(" ")[4].slice(0,5)) %></span>
+                            <span class="text-sm self-end"><%= displayTime(message.createdAt) %></span>
                         </div>
                     <% } %>
                     <% if(message.sender.toString() != user1._id.toString()){ %>
                         <div class="msg-token flex flex-col self-start bg-slate-300 w-1/3 p-4 rounded-tr-2xl rounded-bl-2xl rounded-br-2xl m-4">
                             <%= message.content %>
-                            <span class="text-sm self-end"><%= displayTime(message.createdAt.toString().split(" ")[4].slice(0,5)) %></span>
+                            <span class="text-sm self-end"><%= displayTime(message.createdAt) %></span>
                         </div>
                     <% } %>
                 <% } %>
             </div>
-            <form method="post" class="flex justify-center chat-form">
+            <div class="flex justify-center chat-form h-[15vh]">
                 <input type="text" placeholder="Enter message" name="message" id="message" class="bg-white w-[80%] rounded-lg p-4 m-2 focus:outline-none focus:ring-0" required>
-                <button class="bg-blue-600 text-white h-12 w-16 m-4 rounded-md">Send</button>
-            </form>
+                <button class="bg-blue-600 text-white h-12 w-16 m-4 rounded-md chat-btn">Send</button>
+            </div>
         </div>
     </div>
     
@@ -130,7 +130,7 @@
             const socket = io();
             socket.emit("join_room", {sender, room});
             const msgBox = document.querySelector(".message");
-            const form = document.querySelector(".chat-form");
+            const form = document.querySelector(".chat-btn");
             const input = document.querySelector("#message");
             const msgCon = document.querySelector(".mes-con");
             const msgTime = document.querySelector(".mes-time");
@@ -148,8 +148,7 @@
                 socket.emit("typing", {room});
             });
 
-            form.addEventListener("submit", (evt) => {
-                evt.preventDefault();
+            form.addEventListener("click", () => {
                 if(input.value.trim()){
                     socket.emit("message", {text: input.value, room, sender});
                     scrollToBottom();
@@ -165,9 +164,9 @@
                 t.classList.add("text-sm", "self-end");
                 msg.append(t);
                 if(sender1.toString() != sender.toString()){
-                    msg.classList.add("flex", "flex-col", "self-start", "bg-slate-300", "w-1/3", "p-4", "rounded-tr-2xl", "rounded-bl-2xl", "rounded-br-2xl", "m-4");
+                    msg.classList.add("flex", "flex-col", "self-start", "bg-slate-300", "w-1/3", "p-4", "rounded-tr-2xl", "rounded-bl-2xl", "rounded-br-2xl", "m-4", "msg-token");
                 } else {
-                    msg.classList.add("flex", "flex-col", "self-end", "bg-blue-500", "w-1/3", "p-4", "rounded-tl-2xl", "rounded-bl-2xl", "rounded-br-2xl", "m-4", "text-white");
+                    msg.classList.add("flex", "flex-col", "self-end", "bg-blue-500", "w-1/3", "p-4", "rounded-tl-2xl", "rounded-bl-2xl", "rounded-br-2xl", "m-4", "text-white", "msg-token");
                 }
                 msgBox.append(msg);
                 scrollToBottom();

@@ -63,10 +63,9 @@ io.on("connection", wrapAsync(async (socket) => {
         await message.save();
         let r = await Room.findById(room);
         r.lastMessage = text;
-        r.lastTime = message.createdAt.toString().split(" ")[4].slice(0,5);
+        r.lastTime = message.createdAt;
         await r.save();
-        let time = message.createdAt.toString().split(" ")[4].slice(0,5);
-        time = displayTime(time);
+        let time = displayTime(message.createdAt);
         io.to(room).emit("message", {text, sender, time});
     });
 
@@ -101,7 +100,7 @@ app.post("/signup", wrapAsync(signup));
 app.get("/logout", logout);
 
 app.use((req, res, next) => {
-    next(new ExpressError(400, "Bad request page not found"));
+    next(new ExpressError(400, `Bad request page not found ${req.path} ${req.method}`));
 });
 
 app.use((err, req, res, next) => {

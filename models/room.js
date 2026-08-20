@@ -22,7 +22,7 @@ const roomSchema = new Schema({
         type: String,
     },
     lastTime: {
-        type: String,
+        type: Date,
     },
 });
 
