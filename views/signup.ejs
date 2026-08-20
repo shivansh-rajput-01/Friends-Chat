@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="form-container">
+        <form action="/signup" method="post" class="signup-form">
+            <div class="field-container">
+                <label for="username" class="bl">Username</label>
+                <input type="text" placeholder="Enter Username" id="username" name="userName">
+                <span class="user-error error hide">Enter a valid username</span>
+            </div>
+            
+            <div class="field-container">
+                <label for="email" class="bl">Email</label>
+                <input type="email" placeholder="Enter email" id="email" name="email">
+                <span class="email-error error hide">Enter a valid email</span>
+            </div>
+            <div class="field-container">
+                <label for="password" class="bl">Password</label>
+                <input type="password" placeholder="Enter password" id="password" name="password">
+                <span class="password-error error hide">Enter a valid password</span>
+            </div>
+            <button class="signup">Sign Up</button>
+            <p class="mt-l">Already have an Account? <a href="/login">login</a></p>
+        </form>
+    </div>
+    <script>
+        let form = document.querySelector(".signup-form");
+        let userErr = document.querySelector(".user-error");
+        let emailErr = document.querySelector(".email-error");
+        let passwordErr = document.querySelector(".password-error");
+
+        function validateUsername(username){
+            let res = [true, ""];
+            for(let i=0; i<username.length; i++){
+                if(username[i] >= 'A' && username[i] <= "Z"){
+                    res[0] = false;
+                    res[1] = "Username cannot contain uppercase characters";
+                    break;
+                } else if(username[i] < "a" || username[i] > "z"){
+                    res[0] = false;
+                    res[1] = "Username can contain lowercase alphabets only";
+                    break;
+                }
+            }
+            return res;
+        }
+
+        function validatePassword(password){
+            let condition = [false, false, false, false];
+            let obj = {
+                0: "Password must contain at least 1 lowercase alphabet",
+                1: "Password must contain at least 1 uppercase alphabet",
+                2: "Password length should be at least 8 and at most 12",
+                3: "Password must have at least one special character (@, #, &, *)",
+            }
+            password = password.trim();
+            if(password.length >= 8 && password.length <= 12){
+                condition[2] = true;
+            }
+            for(let i=0; i<password.length; i++){
+                if(password[i] >= "a" && password[i] <= "z"){
+                    condition[0] = true;
+                } else if(password[i] >= "A" && password[i] <= "Z"){
+                    condition[1] = true;
+                } else if(password[i] == "@" || password[i] == "#" || password[i] == "*" || password[i] == "&"){
+                    condition[3] = true;
+                }
+            }
+            let result = [true, ""];
+            for(let i=0; i<condition.length; i++){
+                if(!condition[i]){
+                    result[0] = false;
+                    result[1] = obj[i];
+                    break;
+                }
+            }
+            return result;
+        }
+
+        function validate(username, email, password){
+            let result = [true, "", "", ""];
+            if(!username.trim()){
+                result[1] = "Username cannot be empty";
+                result[0] = false;
+            } else {
+                let userValidate = validateUsername(username);
+                if(!userValidate[0]){
+                    result[0] = false;
+                    result[1] = userValidate[1];
+                }
+            }
+            if(!email.trim()){
+                result[2] = "Email cannot be empty";
+                result[0] = false;
+            }
+            if(!password.trim()){
+                result[3] = "Password cannot be empty";
+                result[0] = false;
+            } else {
+                let passValidate = validatePassword(password);
+                if(!passValidate[0]){
+                    result[0] = false;
+                    result[3] = passValidate[1];
+                }
+            }
+            return result;
+        }
+
+        form.addEventListener("submit", (evt) => {
+            let result = validate(document.querySelector("#username").value, document.querySelector("#email").value, document.querySelector("#password").value);
+            if(!result[0]){
+                evt.preventDefault();
+                if(result[1]){
+                    userErr.classList.remove("hide");
+                    userErr.innerText = `${result[1]}`
+                }
+                if(result[2]){
+                    emailErr.classList.remove("hide");
+                    emailErr.innerText = `${result[2]}`
+                }
+                if(result[3]){
+                    passwordErr.classList.remove("hide");
+                    passwordErr.innerText = `${result[3]}`
+                }
+                if(!result[1]){
+                    userErr.classList.add("hide");
+                }
+                if(!result[2]){
+                    emailErr.classList.add("hide");
+                }
+                if(!result[3]){
+                    passwordErr.classList.add("hide");
+                }
+            }
+        });
+    </script>
+</body>
+</html>

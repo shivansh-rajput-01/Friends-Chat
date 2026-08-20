@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="form-container">
+        <form action="/login" method="post" class="login-form">
+            <div class="field-container">
+                <label for="username" class="bl">Username</label>
+                <input type="text" placeholder="Enter Username" id="username" name="userName">
+                <span class="user-error error hide">Enter a valid username</span>
+            </div>
+            
+            <div class="field-container">
+                <label for="password" class="bl">Password</label>
+                <input type="password" placeholder="Enter password" id="password" name="password">
+                <span class="password-error error hide">Enter a valid password</span>
+            </div>
+            <button class="login">Login</button>
+            <p class="mt-l">New to friends-chat? <a href="/signup">signup</a></p>
+        </form>
+    </div>
+</body>
+</html>

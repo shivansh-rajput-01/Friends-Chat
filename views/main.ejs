@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends-chat</title>
+    <link rel="stylesheet" href="/output.css">
+    <style>
+        @media(max-width: 700px){
+            .chats{
+                display: none !important;
+            }
+            .rooms{
+                width: 100% !important;
+            }
+        }
+
+        @media (min-width: 700px) and (max-width: 1000px){
+            .chats{
+                display: none;
+            }
+            .rooms{
+                margin: 0px auto;
+                width: 70% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main flex w-full h-screen overflow-hidden">
+        <div class="rooms w-1/3 h-full overflow-y-auto text-blue-700">
+            <input type="text" placeholder="Search" class="block w-[90%] h-12 bg-slate-300 mx-auto my-4 p-4 rounded-lg focus:outline-none focus:ring-0" id="search">
+            <form action="/" method="post" class="room-form w-[90%] h-48 flex flex-col rounded-md shadow-lg mx-auto my-4 items-center justify-center">
+                <h3 class="self-start text-black ml-4">Add Friend</h3>
+                <input type="text" placeholder="Username" name="username" class="w-[80%] p-2 rounded-md m-4 outline outline-2 outline-black" required>
+                <button class="w-[80%] bg-gradient-to-r from-blue-400 to-blue-700 text-white rounded-md h-[36px] m-4">Start Chat</button>
+            </form> 
+            <% for(let room of rooms){ %>
+                <div class="room flex items-center w-[90%] h-16 border-b border-b-blue-300 bg-slate-200 hover:bg-slate-300 mx-auto my-2 rounded-2xl" data-id="<%= room._id %>">
+                    <% if(room.roomType == "private" && user.userName == room.members[0].userName){ %>
+                        <div class="profile w-8 h-8 rounded-full bg-blue-600 ml-4 mr-4 text-2xl flex items-center justify-center text-white p-0"><%= room.members[1].userName[0].toUpperCase() %></div>
+                        <div class="name-message w-[70%]">
+                            <%= room.members[1].userName %>
+                            <br>
+                            <div class="flex justify-between w-full">
+                                <span class="text-sm text-black">
+                                    <% if(room.lastMessage && room.lastMessage.length >= 18){ %>
+                                        <%= room.lastMessage.slice(0,19) + "..." %>
+                                    <% } %>
+                                    <% if(room.lastMessage && room.lastMessage.length < 18){ %>
+                                        <%= room.lastMessage %>
+                                    <% } %>
+                                </span>
+                                <span class="text-sm text-black">
+                                    <% if(room.lastTime){ %>
+                                        <%= displayTime(room.lastTime) %>
+                                    <% } %>
+                                </span>
+                            </div>
+                        </div>
+                    <% } %>
+                    <% if(room.roomType == "private" && user.userName == room.members[1].userName){ %>
+                        <div class="profile w-8 h-8 rounded-full bg-blue-600 ml-4 mr-4 text-2xl flex items-center justify-center text-white p-0"><%= room.members[0].userName[0].toUpperCase() %></div>
+                        <div class="name-message w-[70%]">
+                            <%= room.members[0].userName %>
+                            <br>
+                            <div class="flex justify-between w-full">
+                                <span class="text-sm text-black">
+                                    <% if(room.lastMessage && room.lastMessage.length >= 18){ %>
+                                        <%= room.lastMessage.slice(0,19) + "..." %>
+                                    <% } %>
+                                    <% if(room.lastMessage && room.lastMessage.length < 18){ %>
+                                        <%= room.lastMessage %>
+                                    <% } %>
+                                </span>
+                                <span class="text-sm text-black">
+                                    <% if(room.lastTime){ %>
+                                        <%= displayTime(room.lastTime) %>
+                                    <% } %>
+                                </span>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            <% } %>
+        </div> 
+        <div class="chats w-2/3 h-full overflow-y-auto bg-slate-100"></div>
+    </div>
+    <script>
+        let rooms = document.querySelectorAll(".room");
+        for(let room of rooms){
+            room.addEventListener("click", () => {
+                window.location.href = `/chats/${room.getAttribute("data-id")}`;
+            });
+        }
+    </script>
+</body>
+</html>
