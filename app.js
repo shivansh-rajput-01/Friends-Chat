@@ -54,7 +54,12 @@ io.on("connection", wrapAsync(async (socket) => {
         console.log(`${socket.id} joined ${room}`);
     });
 
-    socket.on("message", async({text, room, sender}) => {
+    socket.on("join_personal_room", ({id}) => {
+        console.log(`${socket.id} joined room ${id}`);
+        socket.join(id);
+    });
+
+    socket.on("message", async({text, room, sender, receiver}) => {
         const message = new Message({
             sender: sender,
             content: text,
@@ -67,6 +72,11 @@ io.on("connection", wrapAsync(async (socket) => {
         await r.save();
         let time = displayTime(message.createdAt);
         io.to(room).emit("message", {text, sender, time});
+        // tell receiver about new message in any room
+        console.log(`receiver id : ${receiver}`);
+        io.to(receiver).emit("message_received", {room, time, text});
+        // tell sender about new message and update message at sender room list
+        socket.emit("message_received", {room, time, text});
     });
 
     socket.on("typing", ({room}) => {
@@ -77,8 +87,8 @@ io.on("connection", wrapAsync(async (socket) => {
 app.get("/", isLoggedIn, wrapAsync(async (req, res) => {
     let user = await User.findOne({email: req.user.email});
     let userId = user._id;
-    let rooms = await Room.find({members: userId}).populate("members");
-    res.render("main.ejs", {email: req.user.email, rooms, user, displayTime});
+    let rooms = await Room.find({members: userId}).populate("members").sort({lastTime: -1});
+    res.render("main.ejs", {email: req.user.email, rooms, user, displayTime, userId});
 }));
 
 app.post("/", isLoggedIn, wrapAsync(createChatRoom));
