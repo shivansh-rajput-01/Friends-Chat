@@ -38,7 +38,7 @@ module.exports.displayChat = async (req, res) => {
     }
     let user = await User.findOne({email: req.user.email});
     let userId = user._id;
-    let rooms = await Room.find({members: userId}).populate("members");
+    let rooms = await Room.find({members: userId}).populate("members").sort({lastTime: -1});
     let messages = await Message.find({room: id}).sort({createdAt: 1});
     res.render("chat.ejs", {user1, user2, roomId: id, messages, displayTime, rooms, user});
 }
