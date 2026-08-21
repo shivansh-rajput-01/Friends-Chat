@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
-    <link rel="stylesheet" href="/output.css">
+    <link rel="stylesheet" href="/styles/output.css">
     <style>
         @media(max-width: 1000px){
             .rooms{
@@ -20,7 +20,7 @@
 
         @media(min-width: 1000px){
             .rooms{
-                display: block !important;
+                display: flex !important;
             }
             .chats{
                 width: 75% !important;
@@ -29,65 +29,88 @@
                 width: 33% !important;
             }
         }
+
+        .message{
+            background-image: url("/images/new-blue-doodle.png");
+            background-repeat: repeat;
+        }
+
+        .room-container{
+            flex-grow: 1 !important;
+            overflow-y: auto;
+        }
+
+        .hide{
+            display: none !important;
+        }
+
+        .add-friend{
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="main flex w-full h-screen overflow-hidden">
-        <div class="rooms w-1/3 h-full overflow-y-auto text-blue-700">
-            <input type="text" placeholder="Search" class="block w-[90%] h-12 bg-slate-300 mx-auto my-4 p-4 rounded-lg focus:outline-none focus:ring-0" id="search">
-            <form action="/" method="post" class="room-form w-[90%] h-48 flex flex-col rounded-md shadow-lg mx-auto my-4 items-center justify-center">
+        <div class="rooms w-1/3 h-full overflow-y-auto text-blue-700 flex flex-col">
+            <div class="search w-full flex justify-around items-center">
+                <input type="text" placeholder="Search" class="search-input inline-block w-[70%] h-12 bg-slate-300 my-4 p-4 rounded-lg focus:outline-none focus:ring-0" id="search">
+                <span class="add-friend flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-2xl text-white pb-2">+</span>
+            </div>
+            <form action="/" method="post" class="hide room-form w-[90%] h-48 flex flex-col rounded-md shadow-lg mx-auto my-4 items-center justify-center">
                 <h3 class="self-start text-black ml-4">Add Friend</h3>
                 <input type="text" placeholder="Username" name="username" class="w-[80%] p-2 rounded-md m-4 outline outline-2 outline-black" required>
                 <button class="w-[80%] bg-gradient-to-r from-blue-400 to-blue-700 text-white rounded-md h-[36px] m-4">Start Chat</button>
             </form> 
-            <% for(let room of rooms){ %>
-                <div class="room flex items-center w-[90%] h-16 border-b border-b-blue-300 bg-slate-200 hover:bg-slate-300 mx-auto my-2 rounded-2xl" data-id="<%= room._id %>">
-                    <% if(room.roomType == "private" && user.userName == room.members[0].userName){ %>
-                        <div class="profile w-8 h-8 rounded-full bg-blue-600 ml-4 mr-4 text-2xl flex items-center justify-center text-white p-0"><%= room.members[1].userName[0].toUpperCase() %></div>
-                        <div class="name-message w-[70%]">
-                            <%= room.members[1].userName %>
-                            <br>
-                            <div class="flex justify-between w-full">
-                                <span class="mes-con text-sm text-black">
-                                    <% if(room.lastMessage && room.lastMessage.length >= 18){ %>
-                                        <%= room.lastMessage.slice(0,19) + "..." %>
-                                    <% } %>
-                                    <% if(room.lastMessage && room.lastMessage.length < 18){ %>
-                                        <%= room.lastMessage %>
-                                    <% } %>
-                                </span>
-                                <span class="mes-time text-sm text-black">
-                                    <% if(room.lastTime){ %>
-                                        <%= displayTime(room.lastTime) %>
-                                    <% } %>
-                                </span>
+            <div class="room-container overflow-y-auto w-full">
+                <% for(let room of rooms){ %>
+                    <div class="room flex items-center w-[90%] h-16 border-b border-b-blue-300 bg-slate-200 hover:bg-slate-300 mx-auto my-2 rounded-2xl" data-id="<%= room._id %>">
+                        <% if(room.roomType == "private" && user.userName == room.members[0].userName){ %>
+                            <div class="profile w-8 h-8 rounded-full bg-blue-600 ml-4 mr-4 text-2xl flex items-center justify-center text-white p-0"><%= room.members[1].userName[0].toUpperCase() %></div>
+                            <div class="name-message w-[70%]" data-name="<%= room.members[1].userName %>" data-message="<%= room.lastMessage %>" data-time="<%= displayTime(room.lastTime) %>">
+                                <%= room.members[1].userName %>
+                                <br>
+                                <div class="mes-box flex justify-between w-full" data-rid="<%= room._id %>">
+                                    <span class="mes-con text-sm text-black">
+                                        <% if(room.lastMessage && room.lastMessage.length >= 18){ %>
+                                            <%= room.lastMessage.slice(0,19) + "..." %>
+                                        <% } %>
+                                        <% if(room.lastMessage && room.lastMessage.length < 18){ %>
+                                            <%= room.lastMessage %>
+                                        <% } %>
+                                    </span>
+                                    <span class="mes-time text-sm text-black">
+                                        <% if(room.lastTime){ %>
+                                            <%= displayTime(room.lastTime) %>
+                                        <% } %>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    <% } %>
-                    <% if(room.roomType == "private" && user.userName == room.members[1].userName){ %>
-                        <div class="profile w-8 h-8 rounded-full bg-blue-600 ml-4 mr-4 text-2xl flex items-center justify-center text-white p-0"><%= room.members[0].userName[0].toUpperCase() %></div>
-                        <div class="name-message w-[70%]">
-                            <%= room.members[0].userName %>
-                            <br>
-                            <div class="flex justify-between w-full">
-                                <span class="text-sm text-black">
-                                    <% if(room.lastMessage && room.lastMessage.length >= 18){ %>
-                                        <%= room.lastMessage.slice(0,19) + "..." %>
-                                    <% } %>
-                                    <% if(room.lastMessage && room.lastMessage.length < 18){ %>
-                                        <%= room.lastMessage %>
-                                    <% } %>
-                                </span>
-                                <span class="text-sm text-black">
-                                    <% if(room.lastTime){ %>
-                                        <%= displayTime(room.lastTime) %>
-                                    <% } %>
-                                </span>
+                        <% } %>
+                        <% if(room.roomType == "private" && user.userName == room.members[1].userName){ %>
+                            <div class="profile w-8 h-8 rounded-full bg-blue-600 ml-4 mr-4 text-2xl flex items-center justify-center text-white p-0"><%= room.members[0].userName[0].toUpperCase() %></div>
+                            <div class="name-message w-[70%]" data-name="<%= room.members[0].userName %>" data-message="<%= room.lastMessage %>" data-time="<%= displayTime(room.lastTime) %>">
+                                <%= room.members[0].userName %>
+                                <br>
+                                <div class="mes-box flex justify-between w-full" data-rid="<%= room._id %>">
+                                    <span class="mes-con text-sm text-black">
+                                        <% if(room.lastMessage && room.lastMessage.length >= 18){ %>
+                                            <%= room.lastMessage.slice(0,19) + "..." %>
+                                        <% } %>
+                                        <% if(room.lastMessage && room.lastMessage.length < 18){ %>
+                                            <%= room.lastMessage %>
+                                        <% } %>
+                                    </span>
+                                    <span class="mes-time text-sm text-black">
+                                        <% if(room.lastTime){ %>
+                                            <%= displayTime(room.lastTime) %>
+                                        <% } %>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    <% } %>
-                </div>
-            <% } %>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
         </div>
         <div class="chats w-2/3 h-full overflow-y-auto bg-slate-100">
             <div class="header flex items-center bg-white w-full h-[10vh] border-l-slate-700 border-b-slate-300">
@@ -99,7 +122,7 @@
                     <div class="typing text-blue-500 h-4"></div>
                 </div>
             </div>
-            <div class="message flex flex-col w-full h-[75vh] overflow-y-auto bg-slate-200">
+            <div class="message flex flex-col w-full h-[75vh] overflow-y-auto">
                 <% for(let message of messages){ %>
                     <% if(message.sender.toString() == user1._id.toString()){ %>
                         <div class="msg-token flex flex-col self-end bg-blue-500 text-white w-1/3 p-4 rounded-tl-2xl rounded-bl-2xl rounded-br-2xl m-4">
@@ -116,7 +139,7 @@
                 <% } %>
             </div>
             <div class="flex justify-center chat-form h-[15vh]">
-                <input type="text" placeholder="Enter message" name="message" id="message" class="bg-white w-[80%] rounded-lg p-4 m-2 focus:outline-none focus:ring-0" required>
+                <input type="text" placeholder="Enter message" name="message" id="message" class="bg-white w-[80%] h-12 m-4 rounded-lg p-6 focus:outline-none focus:ring-0" required>
                 <button class="bg-blue-600 text-white h-12 w-16 m-4 rounded-md chat-btn">Send</button>
             </div>
         </div>
@@ -127,13 +150,22 @@
         // document.addEventListener("DOMContentLoaded", () => {
             const room = "<%= roomId %>";
             const sender = "<%= user1._id %>";
-            const socket = io();
+            const receiver = "<%= user2._id%>";
+            const socket = io({
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 1000
+            });
+
+            socket.on("connect", () => {
+                socket.emit("join_personal_room", { id: sender });
+            });
+
             socket.emit("join_room", {sender, room});
             const msgBox = document.querySelector(".message");
             const form = document.querySelector(".chat-btn");
             const input = document.querySelector("#message");
-            const msgCon = document.querySelector(".mes-con");
-            const msgTime = document.querySelector(".mes-time");
+            const msBox = document.querySelectorAll(".mes-box");
 
             function scrollToBottom() {
                 const chatContainer = document.querySelector(".message"); 
@@ -150,7 +182,7 @@
 
             form.addEventListener("click", () => {
                 if(input.value.trim()){
-                    socket.emit("message", {text: input.value, room, sender});
+                    socket.emit("message", {text: input.value, room, sender, receiver});
                     scrollToBottom();
                 }
                 input.value = "";
@@ -183,6 +215,27 @@
                 }, 1000);
             });
 
+            socket.on("message_received", ({room, time, text}) => {
+                console.log("message_received");
+                for(let mes of msBox){
+                    if(mes.getAttribute("data-rid").toString() == room.toString()){
+                        let ms = text;
+                        if(text.length >= 18){
+                            ms = text.slice(0, 19) + "...";
+                        }
+                        mes.children[0].innerText = ms;
+                        mes.children[1].innerText = time;
+                    }
+                }
+            });
+
+            let friend = document.querySelector(".add-friend");
+            let addFriend = document.querySelector(".room-form");
+
+            friend.addEventListener("click", () => {
+                addFriend.classList.toggle("hide");
+            });
+
             let rooms = document.querySelectorAll(".room");
             for(let room of rooms){
                 room.addEventListener("click", () => {
@@ -191,5 +244,6 @@
             }
         // });
     </script>
+    <script src="/scripts/search.js"></script>
 </body>
 </html>
