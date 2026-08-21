@@ -90,8 +90,8 @@ search.addEventListener("input", () => {
         roomContainerNew.classList.remove("hide");
         for(let r of roomData){
             let {rid, userName, message, time} = r;
-            if(searchFind(userName, search.value.trim())){
-                let startIdx = userName.indexOf(search.value.trim());
+            if(searchFind(userName, search.value.trim().toLowerCase())){
+                let startIdx = userName.indexOf(search.value.trim().toLowerCase());
                 let lastIdx = startIdx + search.value.trim().length;
                 searchedRooms.push({rid, userName, message, time, startIdx, lastIdx});
             }
