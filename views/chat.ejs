@@ -1,54 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    <link rel="stylesheet" href="/styles/output.css">
-    <style>
-        @media(max-width: 1000px){
-            .rooms{
-                display: none !important;
-            }
-            .chats{
-                width: 100% !important;
-            }
-            .msg-token{
-                width: 50% !important;
-            }
-        }
-
-        @media(min-width: 1000px){
-            .rooms{
-                display: flex !important;
-            }
-            .chats{
-                width: 75% !important;
-            }
-            .msg-token{
-                width: 33% !important;
-            }
-        }
-
-        .message{
-            background-image: url("/images/new-blue-doodle.png");
-            background-repeat: repeat;
-        }
-
-        .room-container{
-            flex-grow: 1 !important;
-            overflow-y: auto;
-        }
-
-        .hide{
-            display: none !important;
-        }
-
-        .add-friend{
-            cursor: pointer;
-        }
-    </style>
-</head>
+<% layout("./layouts/boilerplate") -%>
 <body>
     <div class="main flex w-full h-screen overflow-hidden">
         <div class="rooms w-1/3 h-full overflow-y-auto text-blue-700 flex flex-col">
@@ -80,7 +30,12 @@
                                     </span>
                                     <span class="mes-time text-sm text-black">
                                         <% if(room.lastTime){ %>
-                                            <%= displayTime(room.lastTime) %>
+                                            <% if(compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayTime(room.lastTime) %>
+                                            <% } %>
+                                            <% if(!compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayDate(room.lastTime) %>
+                                            <% } %>
                                         <% } %>
                                     </span>
                                 </div>
@@ -102,7 +57,12 @@
                                     </span>
                                     <span class="mes-time text-sm text-black">
                                         <% if(room.lastTime){ %>
-                                            <%= displayTime(room.lastTime) %>
+                                            <% if(compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayTime(room.lastTime) %>
+                                            <% } %>
+                                            <% if(!compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayDate(room.lastTime) %>
+                                            <% } %>
                                         <% } %>
                                     </span>
                                 </div>
@@ -119,11 +79,33 @@
                     <h3>
                         <%= user2.userName %>
                     </h3>
-                    <div class="typing text-blue-500 h-4"></div>
+                    <div class="typing text-blue-500 h-4 text-sm">
+                        <% if(user2.status && user2.status == "Online"){ %>
+                            <%= "Online" %>
+                        <% } %>
+                        <% if(user2.status && user2.status == "Offline"){ %>
+                            <% if(user2.lastActive){ %>
+                                <%= `last seen at ${displayTime(user2.lastActive)} ${displayDate(user2.lastActive)}` %>
+                            <% } %>
+                        <% } %>
+                    </div>
                 </div>
             </div>
             <div class="message flex flex-col w-full h-[75vh] overflow-y-auto">
+                <% let date = messages[0].createdAt %>
+                <% let i = 0 %>
                 <% for(let message of messages){ %>
+                    <% if(!compareDate(message.createdAt, date) || i == 0){ %>
+                        <div class="date self-center bg-slate-200 text-slate-700 rounded-md w-16 h-8 text-sm p-4 flex items-center justify-center my-4" data-date="<%= displayDate(message.createdAt) %>">
+                            <% if(compareDate(serverCurrentTime, message.createdAt)){ %>
+                                <%= "today" %>
+                            <% } %>
+                            <% if(!compareDate(serverCurrentTime, message.createdAt)){ %>
+                                <%= displayDate(message.createdAt) %>
+                            <% } %>
+                        </div>
+                        <% date = message.createdAt %>
+                    <% } %>
                     <% if(message.sender.toString() == user1._id.toString()){ %>
                         <div class="msg-token flex flex-col self-end bg-blue-500 text-white w-1/3 p-4 rounded-tl-2xl rounded-bl-2xl rounded-br-2xl m-4">
                             <%= message.content %>
@@ -136,6 +118,7 @@
                             <span class="text-sm self-end"><%= displayTime(message.createdAt) %></span>
                         </div>
                     <% } %>
+                    <% i++ %>
                 <% } %>
             </div>
             <div class="flex justify-center chat-form h-[15vh]">
@@ -145,17 +128,12 @@
         </div>
     </div>
     
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         // document.addEventListener("DOMContentLoaded", () => {
             const room = "<%= roomId %>";
             const sender = "<%= user1._id %>";
             const receiver = "<%= user2._id%>";
-            const socket = io({
-                reconnection: true,
-                reconnectionAttempts: Infinity,
-                reconnectionDelay: 1000
-            });
+            const lastMessageTime = "<%= messages[messages.length-1].createdAt %>";
 
             socket.on("connect", () => {
                 socket.emit("join_personal_room", { id: sender });
@@ -166,6 +144,43 @@
             const form = document.querySelector(".chat-btn");
             const input = document.querySelector("#message");
             const msBox = document.querySelectorAll(".mes-box");
+            const date = document.querySelectorAll(".date");
+
+            const displayDate = function(time){
+                const dateObj = new Date(time);
+                const options = {
+                    timeZone: 'Asia/Kolkata',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit' 
+                };
+
+                const formatter = new Intl.DateTimeFormat('en-GB', options);
+                const formattedDate = formatter.format(dateObj); 
+
+                return formattedDate; 
+            }
+
+            const compareDate = function(time1, time2){;
+                let date1 = displayDate(time1);
+                let date2 = displayDate(time2);
+                return date1 === date2;
+            }
+
+            const displayTime = function(dateInput) {
+                let date = new Date(dateInput);
+
+                if (isNaN(date.getTime())) {
+                    date = new Date();
+                }
+
+                return date.toLocaleTimeString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true 
+                });
+            }
 
             function scrollToBottom() {
                 const chatContainer = document.querySelector(".message"); 
@@ -189,6 +204,29 @@
             });
 
             socket.on("message", ({text, sender: sender1, time}) => {
+                const clientCurrentTime = new Date().toISOString();
+                if(!compareDate(clientCurrentTime, lastMessageTime)){
+                    const dDiv = document.createElement("div");
+                    dDiv.classList.add(
+                        "date", 
+                        "self-center", 
+                        "bg-white", 
+                        "text-slate-200", 
+                        "rounded-md", 
+                        "w-16", 
+                        "h-8", 
+                        "text-sm", 
+                        "p-4", 
+                        "flex", 
+                        "items-center", 
+                        "justify-center", 
+                        "my-4"
+                    );
+                    dDiv.innerText = "today";
+                    dDiv.setAttribute("data-date", `${displayDate(clientCurrentTime)}`);
+                    date[date.length-1].innerText = date[date.length-1].getAttribute("data-date")
+                    msgBox.append(dDiv);
+                }
                 let msg = document.createElement("div");
                 msg.innerText = `${text}`;
                 let t = document.createElement("span");
@@ -205,13 +243,14 @@
             });
 
             let typingTimeout;
-
+            let prevMes = document.querySelector(".typing").innerText;
             socket.on("typing", () => {
                 let typing = document.querySelector(".typing");
+                console.log(prevMes);
                 typing.innerText = "typing ...";
                 clearTimeout(typingTimeout);
                 typingTimeout = setTimeout(() => {
-                    typing.innerText = "";
+                    typing.innerText = prevMes;
                 }, 1000);
             });
 
@@ -242,8 +281,22 @@
                     window.location.href = `/chats/${room.getAttribute("data-id")}`;
                 });
             }
+
+            socket.on("going_offline", ({serverCurrentTime}) => {
+                console.log("going_offline");
+                let typing = document.querySelector(".typing");
+                typing.innerText = "last seen at " + displayTime(serverCurrentTime) + " " + displayDate(serverCurrentTime);
+                prevMes = "last seen at " + displayTime(serverCurrentTime) + " " + displayDate(serverCurrentTime);
+            });
+
+            socket.on("user_status_changed", ({id, status}) => {
+                if(receiver == id){ // receiver is online
+                    let typing = document.querySelector(".typing");
+                    typing.innerText = status;
+                    prevMes = status;
+                }
+            })
         // });
     </script>
     <script src="/scripts/search.js"></script>
 </body>
-</html>

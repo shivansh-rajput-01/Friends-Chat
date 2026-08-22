@@ -1,43 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friends-chat</title>
-    <link rel="stylesheet" href="/styles/output.css">
-    <style>
-        @media(max-width: 700px){
-            .chats{
-                display: none !important;
-            }
-            .rooms{
-                width: 100% !important;
-            }
-        }
-
-        @media (min-width: 700px) and (max-width: 1000px){
-            .chats{
-                display: none;
-            }
-            .rooms{
-                margin: 0px auto;
-                width: 70% !important;
-            }
-        }
-
-        .room-container{
-            flex-grow: 1;
-        }
-
-        .hide{
-            display: none;
-        }
-
-        .add-friend{
-            cursor: pointer;
-        }
-    </style>
-</head>
+<% layout("./layouts/boilerplate") -%>
 <body>
     <div class="main flex w-full h-screen overflow-hidden">
         <div class="rooms w-1/3 h-full overflow-y-auto text-blue-700 flex flex-col">
@@ -69,7 +30,12 @@
                                     </span>
                                     <span class="mes-time text-sm text-black">
                                         <% if(room.lastTime){ %>
-                                            <%= displayTime(room.lastTime) %>
+                                            <% if(compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayTime(room.lastTime) %>
+                                            <% } %>
+                                            <% if(!compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayDate(room.lastTime) %>
+                                            <% } %>
                                         <% } %>
                                     </span>
                                 </div>
@@ -91,7 +57,12 @@
                                     </span>
                                     <span class="mes-time text-sm text-black">
                                         <% if(room.lastTime){ %>
-                                            <%= displayTime(room.lastTime) %>
+                                            <% if(compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayTime(room.lastTime) %>
+                                            <% } %>
+                                            <% if(!compareDate(room.lastTime, serverCurrentTime)){ %>
+                                                <%= displayDate(room.lastTime) %>
+                                            <% } %>
                                         <% } %>
                                     </span>
                                 </div>
@@ -103,13 +74,7 @@
         </div>
         <div class="chats w-2/3 h-full overflow-y-auto bg-slate-100"></div>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io({
-            reconnection: true,
-            reconnectionAttempts: Infinity,
-            reconnectionDelay: 1000
-        });
 
         let id = "<%= userId %>";
         const msBox = document.querySelectorAll(".mes-box");
@@ -149,4 +114,3 @@
     </script>
     <script src="/scripts/search.js"></script>
 </body>
-</html>
