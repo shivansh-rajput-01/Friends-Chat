@@ -16,7 +16,14 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: true,
-    }
+    },
+    lastActive: {
+        type: Date
+    },
+    status: {
+        type: String,
+        enum: ["Online", "Offline"],
+    },
 });
 
 const User = mongoose.model("User", userSchema);

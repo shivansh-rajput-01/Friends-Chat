@@ -1,7 +1,7 @@
 const User = require("../models/user.js");
 const Room = require("../models/room.js");
 const Message = require("../models/message.js");
-const {displayTime} = require("../utils/timeDisplay.js");
+const {displayTime, displayDate, compareDate} = require("../utils/timeDisplay.js");
 
 module.exports.createChatRoom = async(req, res) => {
     let {username} = req.body;
@@ -40,5 +40,6 @@ module.exports.displayChat = async (req, res) => {
     let userId = user._id;
     let rooms = await Room.find({members: userId}).populate("members").sort({lastTime: -1});
     let messages = await Message.find({room: id}).sort({createdAt: 1});
-    res.render("chat.ejs", {user1, user2, roomId: id, messages, displayTime, rooms, user});
+    const serverCurrentTime = new Date().toISOString();
+    res.render("chat.ejs", {user1, user2, roomId: id, messages, displayTime, rooms, user, serverCurrentTime, pageCss: "styles/chat.css", displayDate, compareDate});
 }
