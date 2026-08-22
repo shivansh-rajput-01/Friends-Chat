@@ -1,0 +1,30 @@
+@media (max-width: 700px) {
+  .chats {
+    display: none !important;
+  }
+  .rooms {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 1000px) {
+  .chats {
+    display: none;
+  }
+  .rooms {
+    margin: 0px auto;
+    width: 70% !important;
+  }
+}
+
+.room-container {
+  flex-grow: 1;
+}
+
+.hide {
+  display: none;
+}
+
+.add-friend {
+  cursor: pointer;
+}

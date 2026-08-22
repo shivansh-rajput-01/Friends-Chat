@@ -1,0 +1,41 @@
+@media (max-width: 1000px) {
+  .rooms {
+    display: none !important;
+  }
+  .chats {
+    width: 100% !important;
+  }
+  .msg-token {
+    width: 50% !important;
+  }
+}
+
+@media (min-width: 1000px) {
+  .rooms {
+    display: flex !important;
+  }
+  .chats {
+    width: 75% !important;
+  }
+  .msg-token {
+    width: 33% !important;
+  }
+}
+
+.message {
+  background-image: url("/images/new-blue-doodle.png");
+  background-repeat: repeat;
+}
+
+.room-container {
+  flex-grow: 1 !important;
+  overflow-y: auto;
+}
+
+.hide {
+  display: none !important;
+}
+
+.add-friend {
+  cursor: pointer;
+}

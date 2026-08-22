@@ -267,9 +267,6 @@
   .w-full {
     width: 100%;
   }
-  .flex-grow {
-    flex-grow: 1;
-  }
   .flex-col {
     flex-direction: column;
   }
@@ -284,6 +281,9 @@
   }
   .justify-center {
     justify-content: center;
+  }
+  .self-center {
+    align-self: center;
   }
   .self-end {
     align-self: flex-end;
@@ -402,6 +402,9 @@
   }
   .text-blue-700 {
     color: var(--color-blue-700);
+  }
+  .text-slate-700 {
+    color: var(--color-slate-700);
   }
   .text-white {
     color: var(--color-white);
