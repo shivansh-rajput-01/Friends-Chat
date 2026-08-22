@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const engine = require('ejs-mate');
 
 const app = express();
 
@@ -15,7 +16,7 @@ const wrapAsync = require("./utils/WrapAsync.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const {displayTime} = require("./utils/timeDisplay.js");
+const {displayTime, displayDate, compareDate} = require("./utils/timeDisplay.js");
 const {isLoggedIn, isAuthorized} = require("./middleware.js");
 
 const {Server} = require("socket.io");
@@ -26,6 +27,7 @@ const io = new Server(server);
 
 const port = process.env.PORT || 3000;
 
+app.engine('ejs', engine);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
@@ -42,7 +44,11 @@ async function main(){
     }
 }
 
-main();
+main()
+  .then((res) => console.log(`connected to database ${res}`))
+  .catch((err) => console.log(err));
+
+const userSocketMap = new Map();
 
 io.on("connection", wrapAsync(async (socket) => {
     console.log(`New user connected ${socket.id}`);
@@ -54,9 +60,26 @@ io.on("connection", wrapAsync(async (socket) => {
         console.log(`${socket.id} joined ${room}`);
     });
 
-    socket.on("join_personal_room", ({id}) => {
+    socket.on("join_personal_room", async ({id}) => {
         console.log(`${socket.id} joined room ${id}`);
+        if (!id) return;
+
+        let user = await User.findById(id);
+        const serverCurrentTime = new Date().toISOString();
+        user.status = "Online";
+        user.lastActive = serverCurrentTime;
+        await user.save();
+
         socket.join(id);
+
+        if (!userSocketMap.has(id)) {
+            userSocketMap.set(id, new Set());
+        }
+        userSocketMap.get(id).add(socket.id);
+
+        console.log(`User ${id} connected with socket ${socket.id}`);
+        
+        io.emit("user_status_changed", { id, status: "online" });
     });
 
     socket.on("message", async({text, room, sender, receiver}) => {
@@ -82,13 +105,40 @@ io.on("connection", wrapAsync(async (socket) => {
     socket.on("typing", ({room}) => {
         socket.to(room).emit("typing");
     });
+
+    socket.on("disconnecting", async () => {
+        const serverCurrentTime = new Date().toISOString();
+        for (let room of socket.rooms) {
+            if (room !== socket.id) {
+                if (userSocketMap.has(room)) {
+                    const userId = room;
+                    const userSockets = userSocketMap.get(userId);
+                    userSockets.delete(socket.id);
+                    if (userSockets.size === 0) {
+                        userSocketMap.delete(userId);
+
+                        await User.findByIdAndUpdate(userId, {
+                            status: "Offline",
+                            lastActive: serverCurrentTime
+                        });
+
+                        console.log(`User ${userId} is now truly Offline`);
+                    }
+                } 
+                else {
+                    socket.to(room).emit("going_offline", { serverCurrentTime });
+                }
+            }
+        }
+    });
 }));
 
 app.get("/", isLoggedIn, wrapAsync(async (req, res) => {
     let user = await User.findOne({email: req.user.email});
     let userId = user._id;
     let rooms = await Room.find({members: userId}).populate("members").sort({lastTime: -1});
-    res.render("main.ejs", {email: req.user.email, rooms, user, displayTime, userId});
+    const serverCurrentTime = new Date().toISOString();
+    res.render("main.ejs", {email: req.user.email, rooms, user, displayTime, userId, serverCurrentTime, pageCss: "styles/main.css", displayDate, compareDate});
 }));
 
 app.post("/", isLoggedIn, wrapAsync(createChatRoom));
