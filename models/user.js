@@ -24,6 +24,12 @@ const userSchema = new Schema({
         type: String,
         enum: ["Online", "Offline"],
     },
+    shareCode: [
+        {
+            name: String,
+            secretCode: String,
+        }
+    ]
 });
 
 const User = mongoose.model("User", userSchema);
