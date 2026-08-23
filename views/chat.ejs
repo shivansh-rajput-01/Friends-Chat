@@ -179,6 +179,7 @@
             let hasMessage = "<%= hasMessage %>"
             let lastMessageTime;
             lastMessageTime = <% if (messages && messages.length > 0) { %> "<%= messages[messages.length-1].createdAt %>" <% } else { %> null <% } %>;
+            let giveLastTime;
             socket.on("connect", () => {
                 socket.emit("join_personal_room", { id: sender });
             });
@@ -294,6 +295,7 @@
                 console.log(prevMes);
                 typing.innerText = "typing ...";
                 clearTimeout(typingTimeout);
+                clearTimeout(giveLastTime);
                 typingTimeout = setTimeout(() => {
                     typing.innerText = prevMes;
                 }, 1000);
@@ -331,13 +333,19 @@
                 console.log("going_offline", room);
                 if(id != sender){
                     let typing = document.querySelector(".typing");
-                    typing.innerText = "last seen at " + displayTime(serverCurrentTime) + " " + displayDate(serverCurrentTime);
-                    prevMes = "last seen at " + displayTime(serverCurrentTime) + " " + displayDate(serverCurrentTime);
+                    typing.innerText = "";
+                    prevMes = "";
+                    giveLastTime = setTimeout(() => {
+                        typing.innerText = "last seen at " + displayTime(serverCurrentTime) + " " + displayDate(serverCurrentTime);
+                        prevMes = "last seen at " + displayTime(serverCurrentTime) + " " + displayDate(serverCurrentTime);
+                    }, 20000);
                 }
             });
 
             socket.on("user_status_changed", ({id, status}) => {
+                console.log("Online", id);
                 if(receiver == id){ // receiver is online
+                    clearTimeout(giveLastTime);
                     let typing = document.querySelector(".typing");
                     typing.innerText = status;
                     prevMes = status;

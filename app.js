@@ -50,8 +50,9 @@ main()
   .catch((err) => console.log(err));
 
 const userSocketMap = new Map();
+let disTimeOut = {};
 
-io.on("connection", wrapAsync(async (socket) => {
+io.on("connection", async (socket) => {
     console.log(`New user connected ${socket.id}`);
 
     socket.on("join_room", ({sender, room}) => {
@@ -64,7 +65,10 @@ io.on("connection", wrapAsync(async (socket) => {
     socket.on("join_personal_room", async ({id}) => {
         console.log(`${socket.id} joined room ${id}`);
         if (!id) return;
-
+        if (disTimeOut[id]) {
+            clearTimeout(disTimeOut[id]);
+            delete disTimeOut[id];
+        }
         let user = await User.findById(id);
         const serverCurrentTime = new Date().toISOString();
         user.status = "Online";
@@ -80,7 +84,7 @@ io.on("connection", wrapAsync(async (socket) => {
 
         console.log(`User ${id} connected with socket ${socket.id}`);
         
-        io.emit("user_status_changed", { id, status: "online" });
+        io.emit("user_status_changed", { id, status: "Online" });
     });
 
     socket.on("message", async({text, room, sender, receiver}) => {
@@ -136,11 +140,18 @@ io.on("connection", wrapAsync(async (socket) => {
                 } 
                 else {
                     socket.to(room).emit("going_offline", { serverCurrentTime, room, id });
+                    clearTimeout(disTimeOut[id]);
+                    disTimeOut[id] = setTimeout(async () => {
+                        const user = await User.findById(id);
+                        if(user.status == "Online"){
+                            io.emit("user_status_changed", { id, status: "Online" });
+                        }
+                    }, 20000);
                 }
             }
         }
     });
-}));
+});
 
 app.get("/", isLoggedIn, wrapAsync(async (req, res) => {
     let user = await User.findOne({email: req.user.email});
