@@ -22,6 +22,7 @@ const {isLoggedIn, isAuthorized} = require("./middleware.js");
 const {Server} = require("socket.io");
 const { login, signup, logout } = require("./controllers/user.js");
 const { displayChat, createChatRoom } = require("./controllers/chat.js");
+const { encrypt, getSecretCode } = require("./utils/encryption.js");
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -108,6 +109,14 @@ io.on("connection", wrapAsync(async (socket) => {
 
     socket.on("disconnecting", async () => {
         const serverCurrentTime = new Date().toISOString();
+        let id;
+        for(let room of socket.rooms){
+            if (room !== socket.id) {
+                if (userSocketMap.has(room)) {
+                    id = room;
+                }
+            }
+        }
         for (let room of socket.rooms) {
             if (room !== socket.id) {
                 if (userSocketMap.has(room)) {
@@ -126,7 +135,7 @@ io.on("connection", wrapAsync(async (socket) => {
                     }
                 } 
                 else {
-                    socket.to(room).emit("going_offline", { serverCurrentTime });
+                    socket.to(room).emit("going_offline", { serverCurrentTime, room, id });
                 }
             }
         }
@@ -138,12 +147,46 @@ app.get("/", isLoggedIn, wrapAsync(async (req, res) => {
     let userId = user._id;
     let rooms = await Room.find({members: userId}).populate("members").sort({lastTime: -1});
     const serverCurrentTime = new Date().toISOString();
-    res.render("main.ejs", {email: req.user.email, rooms, user, displayTime, userId, serverCurrentTime, pageCss: "styles/main.css", displayDate, compareDate});
+    res.render("main.ejs", {email: req.user.email, rooms, user, displayTime, userId, serverCurrentTime, pageCss: "styles/main.css", displayDate, compareDate, encrypt});
 }));
 
 app.post("/", isLoggedIn, wrapAsync(createChatRoom));
 
 app.get("/chats/:id", isLoggedIn, wrapAsync(isAuthorized), wrapAsync(displayChat));
+
+app.get("/code", isLoggedIn, wrapAsync(async (req, res) => {
+    let {u} = req.query;
+    try{
+        const user = await User.findOne({userName: u});
+        const currUser = await User.findOne({email: req.user.email});
+        if(!user){
+            return res.status(404).json({error: "user not found"});
+        }
+        const isEntry = await User.findOne({
+            _id: currUser._id,
+            "shareCode.name": u
+        });
+        let secretCode;
+        if(!isEntry){
+            secretCode = getSecretCode(currUser._id, user.userName);
+            await User.findByIdAndUpdate(currUser._id, {
+                $push: {
+                    shareCode: {
+                        name: u,
+                        secretCode
+                    }
+                }
+            });
+        } else{
+            let foundUser = isEntry.shareCode.find(user => user.name == u);
+            secretCode = foundUser.secretCode;
+        }
+        res.json({success: true, code: secretCode});
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({error: "internal server error"});
+    }
+}));
 
 app.get("/login", (req, res) => {
     res.render("login.ejs");
