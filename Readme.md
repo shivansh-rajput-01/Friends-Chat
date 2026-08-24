@@ -3,6 +3,7 @@
 Friends-Chat is a full-stack real-time messaging platform built using Node.js, Express, Socket.io, and MongoDB. The application enables users to connect securely using permanent or user-specific temporary secret codes, exchange messages in real-time, and monitor live user status.
 
 Live Demo: https://friends-chat-wsty.onrender.com/
+
 Repository: https://github.com/shivansh-rajput-01/Friends-Chat
 
 ---
@@ -46,7 +47,6 @@ friends-chat/
 ├── controllers/     # Route logic and request handlers
 ├── models/          # Mongoose schemas
 ├── public/          # Static assets and frontend scripts
-├── routes/          # Express router modules
 ├── utils/           # Utility functions and formatters
 ├── views/           # EJS frontend templates
 ├── app.js           # Main application entry point and socket configuration
@@ -68,7 +68,7 @@ To run this project on a local machine, follow these steps:
 3. Setup Environment Variables
    Create a file named .env in the root directory and add the following configuration:
    MONGO_URL=your_mongodb_connection_string
-   SECRET=yoursessionsecret
+   PORT=port_number
 
 4. Start the Server
    node app.js
